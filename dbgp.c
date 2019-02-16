@@ -95,17 +95,12 @@ int dbgp_init(const char *filename)
         SG(sockfd) = sockfd;
 //        fcntl(SG(sockfd), F_SETFL, O_NONBLOCK);
         send(SG(sockfd), init_str, init_str_len + strlen(init_str) + 2, 0);
-
-//        while(!SG(do_step)) {
-//            connect_init();
-//        }
         dbgp_cmdloop();
     }
 }
 
 static char* read_command_data(Dbgp_Buffer *buffer)
 {
-//    char *buf = (char *)malloc(READ_BUFFER_SIZE + 1);
     char *buf = buffer->buffer + buffer->index;
     int buf_len = buffer->size, tmp_len = 0;
     char delim  = '\0';
@@ -114,14 +109,11 @@ static char* read_command_data(Dbgp_Buffer *buffer)
     {
         tmp_len = recv(SG(sockfd), buf + buf_len, READ_BUFFER_SIZE, 0);
         if (tmp_len > 0) {
-//            printf("recv: %d\n", tmp_len);
             buf_len += tmp_len;
         } else if (tmp_len == -1) {
             printf("recv[%d]\n", errno);
-//            sleep(1);
         } else {
             printf("recv[0]\n");
-            //free(buf);
             return NULL;
         }
     }
@@ -178,10 +170,6 @@ static dbgp_arg* parse_arg(const char *command_str, dbgp_arg *args)
     memcpy((char *)args->name, command_str, ptr - command_str);
     args->name[ptr - command_str] = 0;
 
-//    if (args->name[0] == 'e' && args->name[1] == 'v' && args->name[2] == 'a') {
-//        printf("command eval err!\n");
-//        return NULL;
-//    }
     zval pData;
     char *pos_ptr, *tmp_ptr;
     char opt_name[16] = {0};
@@ -189,33 +177,11 @@ static dbgp_arg* parse_arg(const char *command_str, dbgp_arg *args)
     int  state = 0;
     while(ch = *ptr)
     {
-//        if(ch == ' ')
-//        {
-//
-//        } else  if (ch == '-') {
-//            tmp_ptr = strchr(ptr, ' ');
-//            memcpy((char *)opt_name, ptr - 1, tmp_ptr - ptr + 1);
-//            opt_name[tmp_ptr - ptr + 1] = 0;
-//            ptr = tmp_ptr;
-//        } else {
-//            tmp_ptr = strchr(ptr, ' ');
-//            if (!tmp_ptr) {
-//                tmp_ptr = (char *)(command_str + strlen(command_str));
-//            }
-//            memcpy((char *)opt_val, ptr - 1, tmp_ptr - ptr + 1);
-//            opt_val[tmp_ptr - ptr + 1] = 0;
-//            ptr = tmp_ptr;
-//
-//            ZVAL_STRING(&pData, (char *)opt_val);
-//            zend_hash_str_add(args->args, (char *)opt_name, strlen(opt_name), &pData);
-//        }
-
         switch (state) {
             case 0:
                 if (ch == '-') {
                     state = 1;
                     tmp_ptr = opt_name;
-//                    ptr++;
                     continue;
                 }
                 break;
@@ -310,14 +276,11 @@ static void dbgp_cmdloop()
 
         ret = command_exec(args, &retval);
 
-
         if (ret == 0) {
             send_message(&retval);
         } else {
             xmlFreeNode(retval);
         }
-
-        //free(buf);
         FREE_DBGP_ARG(args);
     } while(ret == 0);
     free(buffer.buffer);
@@ -325,7 +288,6 @@ static void dbgp_cmdloop()
 
 void dbgp_breakpoint_handler(const char *filename, int lineno, int breakpoint_type)
 {
-//    printf("filename: %s, lineno: %d, breakpoint_type: %d\n", filename, lineno, breakpoint_type);
     xmlNodePtr response, message;
     char *tmp_filename, *tmp_lineno;
 
@@ -642,12 +604,10 @@ void var_export_xml_node(zval *val, xmlNodePtr *node)
                     child = sdebug_xml_new_node("property");
                     if(key) {
                         sdebug_xml_set_attr(&child, "name", key->val);
-//                        sprintf((char *) tmp_value, "$c[\"%s\"]", key->val);
                         sdebug_xml_set_attr(&child, "fullname", key->val);
                     }else {
                         sprintf((char *) tmp_value, "%d", num);
                         sdebug_xml_set_attr(&child, "name", tmp_value);
-//                        sprintf((char *) tmp_value, "%d", num);
                         sdebug_xml_set_attr(&child, "fullname", tmp_value);
                     }
                     var_export_xml_node(z_val, &child);
