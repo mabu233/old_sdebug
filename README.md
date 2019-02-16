@@ -8,3 +8,6 @@
 
 #### 修改php.ini
 zend_extension=sdebug.so
+
+#### 使用
+本地通过phpstorm右键debug脚本
