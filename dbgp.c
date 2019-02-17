@@ -439,6 +439,7 @@ DBGP_FUNC(breakpoint_set)
 
     zval_ptr_dtor(&pData);
     free(key);
+    free(resolved_path);
 }
 
 DBGP_FUNC(breakpoint_remove)
@@ -489,7 +490,7 @@ DBGP_FUNC(eval)
 //    printf("eval: %s \n", eval_str);
 
     zval res;
-    zend_eval_string(eval_str, &res, (char*)"xdebug://debug-eval");
+    zend_eval_string(eval_str, &res, (char*)"sdebug-eval");
 
     var_export_xml_node(&res, &property);
 
