@@ -55,12 +55,12 @@ zend_module_entry sdebug_module_entry = {
     STANDARD_MODULE_HEADER,
     "sdebug",                   /* Extension name */
     sdebug_functions,           /* zend_function_entry */
-    PHP_MINIT(sdebug),                          /* PHP_MINIT - Module initialization */
-    NULL,                           /* PHP_MSHUTDOWN - Module shutdown */
+    PHP_MINIT(sdebug),          /* PHP_MINIT - Module initialization */
+    NULL,                       /* PHP_MSHUTDOWN - Module shutdown */
     PHP_RINIT(sdebug),          /* PHP_RINIT - Request initialization */
-    NULL,                           /* PHP_RSHUTDOWN - Request shutdown */
+    NULL,                       /* PHP_RSHUTDOWN - Request shutdown */
     PHP_MINFO(sdebug),          /* PHP_MINFO - Module info */
-    PHP_SDEBUG_VERSION,     /* Version */
+    PHP_SDEBUG_VERSION,         /* Version */
     STANDARD_MODULE_PROPERTIES
 };
 /* }}} */
@@ -79,7 +79,6 @@ zend_module_entry sdebug_module_entry = {
 
 static int sdebug_zend_startup(zend_extension *extension)
 {
-    printf("sdebug_zend_startup\n");
     return zend_startup_module(&sdebug_module_entry);
 }
 
@@ -130,7 +129,7 @@ ZEND_EXT_API zend_extension zend_extension_entry = {
         sdebug_statement_call, /* statement_handler_func_t */
         NULL,           /* fcall_begin_handler_func_t */
         NULL,           /* fcall_end_handler_func_t */
-        NULL,   /* op_array_ctor_func_t */
+        NULL,           /* op_array_ctor_func_t */
         NULL,           /* op_array_dtor_func_t */
         STANDARD_ZEND_EXTENSION_PROPERTIES
 };

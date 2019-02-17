@@ -55,14 +55,19 @@ int dbgp_init(const char *filename)
 {
     char init_str_tmp[1024];
     char init_str[1024] = {0};
-    char *env = getenv("XDEBUG_CONFIG");
-    char idekey[10] = {0};
-    if(env) {
-        strncpy(idekey, env + 7, 5);
-    }else {
-        sprintf(idekey, "10000");
+    char *env_str = getenv("XDEBUG_CONFIG");
+    char *idekey = NULL, *ptr_1, *ptr_2;
+    int  idekey_len;
+    if (env_str && (ptr_1 = strstr(env_str, "idekey="))) {
+        ptr_2 = strchr(ptr_1, ';');
+        idekey_len = (ptr_2 ? ptr_2 : env_str + strlen(env_str)) - (ptr_1 + 7);
+        idekey = (char *)malloc(idekey_len + 1);
+        strncpy(idekey, ptr_1 + 7, idekey_len);
+        idekey[idekey_len] = '\0';
+    } else {
+        SG(remote_enable) = 0;
+        return 0;
     }
-    printf("env: %s\n", env);
 
     sprintf(init_str_tmp, "<?xml version=\"1.0\" encoding=\"iso-8859-1\"?>"
              "<init xmlns=\"urn:debugger_protocol_v1\" "
@@ -97,6 +102,10 @@ int dbgp_init(const char *filename)
         send(SG(sockfd), init_str, init_str_len + strlen(init_str) + 2, 0);
         dbgp_cmdloop();
     }
+    if (idekey) {
+        free(idekey);
+    }
+    return 0;
 }
 
 static char* read_command_data(Dbgp_Buffer *buffer)
@@ -429,7 +438,7 @@ DBGP_FUNC(breakpoint_set)
         printf("realpath error, lineno: %d, error: %d\n", __LINE__, errno);
         return;
     }
-    key = malloc(strlen(resolved_path) + 10);
+    key = (char *)malloc(strlen(resolved_path) + 10);
     sprintf(key, "%s:%s", resolved_path, lineno);
 
     ZVAL_LONG(&pData, breakpoint_id);
