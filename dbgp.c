@@ -53,8 +53,8 @@ int breakpoint_id = 1000000;
 
 int dbgp_init(const char *filename)
 {
-    char init_str_tmp[1024];
-    char init_str[1024] = {0};
+    char init_str_tmp[512 + strlen(filename)];
+    char init_str[512 + strlen(filename)];
     char *env_str = getenv("XDEBUG_CONFIG");
     char *idekey = NULL, *ptr_1, *ptr_2;
     int  idekey_len;
@@ -84,7 +84,7 @@ int dbgp_init(const char *filename)
              "</init>", getpid(), idekey, PHP_VERSION, filename, PHP_SDEBUG_VERSION);
     int init_str_len = strlen(init_str_tmp);
     sprintf(init_str, "%d", init_str_len);
-    memcpy(init_str + strlen(init_str) + 1, init_str_tmp, init_str_len);
+    memcpy(init_str + strlen(init_str) + 1, init_str_tmp, init_str_len + 1);
 
 
     struct sockaddr_in sin = {};
