@@ -415,22 +415,30 @@ DBGP_FUNC(breakpoint_set)
 {
     //breakpoint_set -i 7 -t line -f file:///home/x/php-src-php-7.3.1/ext/sdebug/1.php -n 18
     zval pData;
+    char *key, *resolved_path;
+    char id[10];
+
     char *filename = DBGP_GET_OPTVAL(args, "-f");
     char *lineno   = DBGP_GET_OPTVAL(args, "-n");
-    char id[10];
     if (!filename || !lineno) {
         printf("filename and lineno is not null!\n");
         return;
     }
-    char key[strlen(filename + 7) + strlen(lineno) + 2];
-    sprintf((char *)key, "%s:%s", filename + 7, lineno);
+    resolved_path = realpath(filename + 7, NULL);
+    if (!resolved_path) {
+        printf("realpath error, lineno: %d, error: %d\n", __LINE__, errno);
+        return;
+    }
+    key = malloc(strlen(resolved_path) + 10);
+    sprintf(key, "%s:%s", resolved_path, lineno);
 
     ZVAL_LONG(&pData, breakpoint_id);
-    zend_hash_str_add(SG(breakpoint_list), (char *)key, strlen(key), &pData);
+    zend_hash_str_add(SG(breakpoint_list), key, strlen(key), &pData);
     sprintf((char *)id, "%d", breakpoint_id++);
     sdebug_xml_set_attr(retval, "id", id);
 
     zval_ptr_dtor(&pData);
+    free(key);
 }
 
 DBGP_FUNC(breakpoint_remove)
@@ -548,6 +556,13 @@ DBGP_FUNC(context_get)
 void var_export_xml_node(zval *val, xmlNodePtr *node)
 {
     char tmp_name[64], tmp_fullname[64], tmp_value[1024];
+
+    if (Z_TYPE_P(val) == IS_INDIRECT) {
+        val = val->value.zv;
+	}
+    if (Z_TYPE_P(val) == IS_REFERENCE) {
+        val = &(val->value.ref->val);
+    }
     switch (Z_TYPE_P(val)) {
         case IS_UNDEF:
             sdebug_xml_set_attr(node, "type", "uninitialized");
@@ -682,6 +697,14 @@ void var_export_xml_node(zval *val, xmlNodePtr *node)
             } else {
                 sdebug_xml_set_attr(node, "recursive", "1");
             }
+            break;
+        }
+        case IS_RESOURCE: {
+            char *type_name;
+            sdebug_xml_set_attr(node, "type", "resource");
+            type_name = (char *) zend_rsrc_list_get_rsrc_type(Z_RES_P(val));
+            sprintf(tmp_value, "resource id='%ld' type='%s'", Z_RES_P(val)->handle, type_name ? type_name : "Unknown");
+            sdebug_xml_set_content(node, tmp_value);
             break;
         }
         default:
