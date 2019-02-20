@@ -71,7 +71,7 @@ int dbgp_init(const char *filename)
 
     sprintf(init_str_tmp, "<?xml version=\"1.0\" encoding=\"iso-8859-1\"?>"
              "<init xmlns=\"urn:debugger_protocol_v1\" "
-             "xmlns:sdebug=\"null\" "
+             "xmlns:sdebug=\"%s\" "
              "appid=\"%d\" "
              "idekey=\"%s\" "
              "language=\"PHP\" "
@@ -81,7 +81,7 @@ int dbgp_init(const char *filename)
              "<engine version=\"%s\">"
              "Sdebug"
              "</engine>"
-             "</init>", getpid(), idekey, PHP_VERSION, filename, PHP_SDEBUG_VERSION);
+             "</init>", PHP_SDEBUG_URL, getpid(), idekey, PHP_VERSION, filename, PHP_SDEBUG_VERSION);
     int init_str_len = strlen(init_str_tmp);
     sprintf(init_str, "%d", init_str_len);
     memcpy(init_str + strlen(init_str) + 1, init_str_tmp, init_str_len + 1);
@@ -91,7 +91,7 @@ int dbgp_init(const char *filename)
     int sockfd;
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     sin.sin_family = AF_INET;
-    sin.sin_addr.s_addr = htonl(0x7f000001);
+    sin.sin_addr.s_addr = inet_addr(SG(remote_host));
     sin.sin_port = htons(9000);
     if(connect(sockfd,(struct sockaddr*)&sin,sizeof(struct sockaddr)) == -1){
         printf("connect fail[%d]\n", errno);
@@ -281,7 +281,7 @@ static void dbgp_cmdloop()
         }
         retval = sdebug_xml_new_node("response");
         sdebug_xml_set_attr(&retval, "xmlns", "urn:debugger_protocol_v1");
-        sdebug_xml_set_attr(&retval, "xmlns:sdebug", "null");
+        sdebug_xml_set_attr(&retval, "xmlns:sdebug", PHP_SDEBUG_URL);
 
         ret = command_exec(args, &retval);
 
@@ -309,7 +309,9 @@ void dbgp_breakpoint_handler(const char *filename, int lineno, int breakpoint_ty
 
     response = sdebug_xml_new_node("response");
     sdebug_xml_set_attr(&response, "xmlns", "urn:debugger_protocol_v1");
-    sdebug_xml_set_attr(&response, "xmlns:sdebug", "null");
+//    测试时发现windows上的phpstorm不传这个字符串就会响应不成功
+//    sdebug_xml_set_attr(&response, "xmlns:sdebug", "http://xdebug.org/dbgp/xdebug");
+    sdebug_xml_set_attr(&response, "xmlns:sdebug", PHP_SDEBUG_URL);
 
     if (SG(lastcmd)[0] != '\0' && SG(transaction_id)[0] != '\0') {
         sdebug_xml_set_attr(&response, "command", SG(lastcmd));

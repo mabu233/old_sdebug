@@ -11,6 +11,7 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <sys/un.h>
+#include <arpa/inet.h>
 
 #define MAX_CMD_NAME_LEN 24
 #define READ_BUFFER_SIZE 512

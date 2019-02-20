@@ -6,11 +6,16 @@
 
 #include "php_sdebug.h"
 
+PHP_INI_BEGIN()
+    STD_PHP_INI_ENTRY("xdebug.remote_enable", "0", PHP_INI_ALL, OnUpdateLong, remote_enable, zend_sdebug_globals, sdebug_globals)
+    STD_PHP_INI_ENTRY("xdebug.remote_host", "127.0.0.1", PHP_INI_ALL, OnUpdateString, remote_host, zend_sdebug_globals, sdebug_globals)
+PHP_INI_END()
 
 PHP_MINIT_FUNCTION(sdebug)
 {
+    REGISTER_INI_ENTRIES();
+
     SG(sockfd)         = 0;
-    SG(remote_enable) = 1;
     SG(status)         = DBGP_STATUS_STARTING;
     SG(lastcmd)        = (char *)malloc(MAX_CMD_NAME_LEN + 1);
     SG(transaction_id) = (char *)malloc(MAX_CMD_NAME_LEN + 1);
@@ -118,7 +123,7 @@ ZEND_EXT_API zend_extension zend_extension_entry = {
         (char*) "Sdebug",
         (char*) PHP_SDEBUG_VERSION,
         (char*) "mabu233",
-        (char*) "",
+        (char*) PHP_SDEBUG_URL,
         (char*) "",
         sdebug_zend_startup,
         NULL,

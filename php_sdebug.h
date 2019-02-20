@@ -26,9 +26,10 @@
 #include "sdebug_xml.h"
 
 extern zend_module_entry sdebug_module_entry;
-# define phpext_sdebug_ptr &sdebug_module_entry
+#define phpext_sdebug_ptr &sdebug_module_entry
 
-# define PHP_SDEBUG_VERSION "0.0.1-alpha"
+#define PHP_SDEBUG_VERSION "0.0.1-alpha"
+#define PHP_SDEBUG_URL     "https://github.com/mabu233/sdebug"
 
 ZEND_BEGIN_MODULE_GLOBALS(sdebug)
     int sockfd;
@@ -37,6 +38,8 @@ ZEND_BEGIN_MODULE_GLOBALS(sdebug)
     char *lastcmd;
     char *transaction_id;
     int do_step;
+
+    char *remote_host;
 
     HashTable *breakpoint_list;
 ZEND_END_MODULE_GLOBALS(sdebug)
