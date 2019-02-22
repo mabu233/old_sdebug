@@ -9,6 +9,7 @@
 PHP_INI_BEGIN()
     STD_PHP_INI_ENTRY("xdebug.remote_enable", "0", PHP_INI_ALL, OnUpdateLong, remote_enable, zend_sdebug_globals, sdebug_globals)
     STD_PHP_INI_ENTRY("xdebug.remote_host", "127.0.0.1", PHP_INI_ALL, OnUpdateString, remote_host, zend_sdebug_globals, sdebug_globals)
+    STD_PHP_INI_ENTRY("xdebug.remote_port", "9000", PHP_INI_ALL, OnUpdateLong, remote_port, zend_sdebug_globals, sdebug_globals)
 PHP_INI_END()
 
 PHP_MINIT_FUNCTION(sdebug)

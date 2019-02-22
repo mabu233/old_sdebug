@@ -92,7 +92,7 @@ int dbgp_init(const char *filename)
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     sin.sin_family = AF_INET;
     sin.sin_addr.s_addr = inet_addr(SG(remote_host));
-    sin.sin_port = htons(9000);
+    sin.sin_port = htons(SG(remote_port));
     if(connect(sockfd,(struct sockaddr*)&sin,sizeof(struct sockaddr)) == -1){
         printf("connect fail[%d]\n", errno);
         SG(remote_enable) = 0;
@@ -309,7 +309,6 @@ void dbgp_breakpoint_handler(const char *filename, int lineno, int breakpoint_ty
 
     response = sdebug_xml_new_node("response");
     sdebug_xml_set_attr(&response, "xmlns", "urn:debugger_protocol_v1");
-//    测试时发现windows上的phpstorm不传这个字符串就会响应不成功
 //    sdebug_xml_set_attr(&response, "xmlns:sdebug", "http://xdebug.org/dbgp/xdebug");
     sdebug_xml_set_attr(&response, "xmlns:sdebug", PHP_SDEBUG_URL);
 
