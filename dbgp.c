@@ -94,7 +94,7 @@ int dbgp_init(const char *filename)
     sin.sin_addr.s_addr = inet_addr(SG(remote_host));
     sin.sin_port = htons(SG(remote_port));
     if(connect(sockfd,(struct sockaddr*)&sin,sizeof(struct sockaddr)) == -1){
-        printf("connect fail[%d]\n", errno);
+        printf("connect fail[%s:%d:%d]\n", SG(remote_host), SG(remote_port), errno);
         SG(remote_enable) = 0;
     }else {
         SG(sockfd) = sockfd;
@@ -337,20 +337,28 @@ xmlNodePtr stack_get(xmlNodePtr *retval)
 {
     xmlNodePtr stack[8192]; //在大我也没办法了QAQ
     int        i = 0;
-    char       *filename, *tmp_filename, *tmp_lineno;
-
-    tmp_filename = (char *)malloc(1024);
-    tmp_lineno   = (char *)malloc(8);
+    char       *filename, tmp_filename[1024], tmp_lineno[8];
 
     zend_execute_data *ptr = EG(current_execute_data);
     while (ptr && i < 8192) {
         stack[i] = sdebug_xml_new_node("stack");
         if(ptr->func) {
-            if (ptr->func->common.function_name) {
-                sdebug_xml_set_attr(&stack[i], "where", ptr->func->common.function_name->val);
-            } else {
-                sdebug_xml_set_attr(&stack[i], "where", "{main}");
+            char where[128] = {0};
+            if(ptr->This.value.obj){
+                if(ptr->func->common.scope){
+                    sprintf(where, "%s->", ptr->func->common.scope->name->val);
+                }else {
+                    sprintf(where, "%s->", ptr->This.value.obj->ce->name->val);
+                }
+            } else if(ptr->func->common.scope){
+                sprintf(where, "%s::", ptr->func->common.scope->name->val);
             }
+            if (ptr->func->common.function_name) {
+                strncat(where, ptr->func->common.function_name->val, strlen(ptr->func->common.function_name->val));
+            } else {
+                strncat(where, "{main}", 6);
+            }
+            sdebug_xml_set_attr(&stack[i], "where", where);
             if (ptr->func->type == 2) {
                 sprintf(tmp_lineno, "%d", ptr->opline->lineno);
                 sdebug_xml_set_attr(&stack[i], "lineno", tmp_lineno);
@@ -358,7 +366,7 @@ xmlNodePtr stack_get(xmlNodePtr *retval)
                 sdebug_xml_set_attr(&stack[i], "filename", tmp_filename);
             } else {
                 sdebug_xml_set_attr(&stack[i], "lineno", "0");
-                sdebug_xml_set_attr(&stack[i], "filename", "internal function]");
+                sdebug_xml_set_attr(&stack[i], "filename", "[internal function]");
             }
         } else {
             sdebug_xml_set_attr(&stack[i], "lineno", "0");
@@ -375,8 +383,6 @@ xmlNodePtr stack_get(xmlNodePtr *retval)
         sdebug_xml_set_attr(&stack[j], "type", "file");
         sdebug_xml_add_child(retval, &stack[j]);
     }
-    free(tmp_filename);
-    free(tmp_lineno);
 }
 
 DBGP_FUNC(feature_set)
