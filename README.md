@@ -1,3 +1,5 @@
+# 不在更新, 目前尝试改造xdebug [https://github.com/mabu233/xdebug](https://github.com/mabu233/xdebug)
+
 # sdebug
 
 #### 编译安装
